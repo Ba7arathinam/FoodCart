@@ -1,0 +1,206 @@
+UPDATE SERVICE
+
+const { FoodCart, foodproduct, sequelize } = require("../Model/CartModel");
+
+class UpdateCartService {
+  async updateCart(p_id, qty, u_id) {
+    try {
+      sequelize.sync();
+      let cart = await getCart(u_id);
+      let price = await foodproduct.findOne({ where: { id: p_id } });
+        // console.log("---------------------------PRICE------------------");
+        // console.log(price.dataValues);
+        
+
+      if (cart) {
+        cart.map(async (i) => {
+          if (i.dataValues.p_id == p_id) {
+
+            let result = await FoodCart.update(
+              {
+                quantity: parseInt(qty) + i.dataValues.quantity,
+                total_price:
+                  (parseInt(qty) + i.dataValues.quantity) * price.dataValues.Price,
+              },
+              { where: { p_id: p_id ,u_id:u_id} }
+            );
+            return result;
+          } else {
+            let result = await FoodCart.create({
+              p_id: p_id,
+              u_id: u_id,
+              quantity: qty,
+              total_price: price.dataValues.price,
+            });
+            return result;
+          }
+        });
+      } else {
+        throw "No product avaliable in the cart";
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }
+}
+
+async function getCart(id) {
+  sequelize.sync();
+  let result = await FoodCart.findAll({
+    where: { u_id: id },
+  });
+  return result;
+}
+
+module.exports = { UpdateCartService };
+
+
+-------------------------------CART MODEL--------------------------------------------
+
+const {Sequelize} = require('sequelize');
+const {
+  DATABASE_NAME,
+  USER,
+  PASSWORD,
+  PORT_NUM,
+  IP_ADDDRESS_R,
+} = require('./config.js');
+
+const sequelize = new Sequelize(DATABASE_NAME, USER, PASSWORD, {
+  host: IP_ADDDRESS_R,
+  port: PORT_NUM,
+  dialect: "mysql",
+});
+
+async function connTest() {
+  try {
+    let conn = await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+  } catch (e) {
+    console.log("Unable to connect to the database:", e);
+  }
+}
+
+connTest();
+
+const { DataTypes } = require("sequelize");
+
+const FoodCart = sequelize.define("Food_Carts", {
+  id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    unique: true,
+    autoIncrement: true,
+  },
+  p_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    primaryKey: true,
+  },
+  u_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    primaryKey: true,
+  },
+  quantity: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  total_price: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+  },
+});
+
+const foodproduct = sequelize.define("Food_Products", {
+  id:{
+      type:DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true,
+      autoIncrement:true
+  },
+  Product_name: {
+    type:DataTypes.STRING,
+    allowNull: true
+  },
+  Price: {
+      type:DataTypes.BIGINT,
+      allowNull: true
+  },
+  rating: {
+      type:DataTypes.DECIMAL,
+      allowNull: true
+  },  
+  Product_image:{
+      type:DataTypes.STRING,
+       allowNull: true
+  },
+  Description:{
+      type:DataTypes.STRING,
+      allowNull: true
+  },  
+  Quantity:{
+      type:DataTypes.INTEGER,
+      allowNull: true
+  },
+  Shop_name:{
+      type:DataTypes.STRING,
+      allowNull: true
+  },
+  Location:{
+      type:DataTypes.STRING,
+      allowNull: true
+  },
+  createdAt:{
+      type:DataTypes.DATE,
+      allowNull: true
+  },
+  updatedAt:{
+      type:DataTypes.DATE,
+      allowNull: true
+  }    
+});
+
+module.exports = { FoodCart, sequelize,foodproduct };
+
+----------------------------------CONFIG FILE----------------------------------
+
+const dotenv = require("dotenv");
+dotenv.config();
+
+module.exports={
+    DATABASE_NAME:process.env.DATABASE_NAME,
+    USER: process.env.USER,
+    PASSWORD:process.env.PASSWORD,
+    PORT_NUM:process.env.PORT_NUM,
+    IP_ADDDRESS_R:process.env.IP_ADDDRESS_R
+ 
+}
+
+------------------------------------- .ENV FILE-------------------------------------
+IP_ADDDRESS_R ="3.7.198.191"
+PORT_NUM ="8993"
+DATABASE_NAME="bu-training"
+USER = "bu-trausr"
+PASSWORD="r9*rwr$!usFw0MCPj#fJ"
+
+------------------------------------UPDATE CART API------------------------------------------
+
+const exp = require('express');
+const router = exp.Router();
+const {UpdateCartService} = require('../Service/UpdateCartService')
+
+let service = new UpdateCartService()
+
+router.post('/updateCart',async (req,res)=>{
+    try {
+        let query = req['query'];
+        let result = await service.updateCart(query['p_id'],query['qty'],query['u_id']);
+        console.log(result);
+        res.json({"Message":result})
+    } catch (error) {
+        res.json(error)
+    }
+});
+
+module.exports = {router}
