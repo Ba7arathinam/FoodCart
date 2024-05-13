@@ -91,7 +91,7 @@ app.get('/getCart/:id', async (req, res) => {
     try{
            let uid = req['params']['id'];
            console.log(uid);
-          let res1 = await foodCart.findOne({ where: { u_id: uid } });
+          let res1 = await foodCart.findAll({ where: { u_id: uid } });
            console.log(res1);
            if (res1 == null) {
                throw "your cart is empty" 
