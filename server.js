@@ -97,7 +97,7 @@ app.get('/getCart/:id', async (req, res) => {
                throw "your cart is empty" 
            }
            else {
-                res.json(res1)
+                res.json({meals:res1})
            }
        }
        catch(e)
