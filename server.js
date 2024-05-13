@@ -118,24 +118,27 @@ app.post('/addCart/:u_id/:p_id', async (req, res) => {
 //getCart
 app.get('/getCart/:id', async (req, res) => {
     try {
-        let uid = req['params']['id'];
-        console.log(uid);
-        let res1 = await foodCart.findAll({ where: { u_id: uid } });
-        console.log(res1);
-        if (res1 == null) {
-            throw "your cart is empty"
-        }
-        else {
-            res.json({ meals: res1 })
-        }
+      let uid = req['params']['id'];
+      console.log(uid);
+      let res1 = await foodCart.findAll({ where: { u_id: uid } });
+      console.log(res1);
+  
+      if (res1.length === 0) {
+        throw new Error("Your cart is empty");
+      } else {
+        let totalAmount = res1.reduce((total, item) => {
+          return total + item.total_price;
+        }, 0);
+  
+        res.json({ meals: res1, totalAmount });
+      }
+    } catch (e) {
+      res.status(400);
+      console.log(e);
+      res.json({ "error": e.message });
     }
-    catch (e) {
-        res.status(400)
-        console.log(e)
-        res.json({ "error": e })
-    }
-
-})
+  });
+  
 
 //deleteCart
 app.delete('/deleteCart', async (req, res) => {
@@ -177,6 +180,49 @@ app.post('/updateCart', async (req, res) => {
         res.json(error.message)
     }
 });
+
+//increament & decreament quantity
+app.post('/updateCart/:id/:action', async (req, res) => {
+    try {
+      const cartId = req.params.id;
+      const action = req.params.action;
+      const userId = req.body.userId;
+  
+      // Find the cart item by ID
+      const cartItem = await foodCart.findByPk(cartId);
+  
+      if (!cartItem) {
+        return res.status(404).json({ error: 'Cart item not found' });
+      }
+  
+      // Check if the user ID matches the cart item's user ID
+      if (cartItem.u_id !== userId) {
+        return res.status(403).json({ error: 'Unauthorized access' });
+      }
+  
+      // Update the quantity based on the action
+      if (action === 'increase') {
+        cartItem.quantity++;
+      } else if (action === 'decrease') {
+        if (cartItem.quantity > 1) {
+          cartItem.quantity--;
+        } else {
+          return res.status(400).json({ error: 'Quantity cannot be less than 1' });
+        }
+      } else {
+        return res.status(400).json({ error: 'Invalid action' });
+      }
+  
+      // Save the updated cart item
+      await cartItem.save();
+  
+      res.json(cartItem);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
 
 app.listen(8080, () => {
     console.log('server is running')
