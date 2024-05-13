@@ -70,6 +70,7 @@ app.post('/addCart/:u_id/:p_id',async(req,res)=>{
             let f_Cart=await foodCart.create({
                 p_id:product_id,
                 u_id:user_id,
+                p_name:f_product.dataValues.Product_name,
                 quantity:f_product.dataValues.Quantity,
                 total_price:f_product.dataValues.Price
             })
@@ -109,25 +110,29 @@ app.get('/getCart/:id', async (req, res) => {
    })
 
    //deleteCart
-   app.delete('/deleteCart/:id',async(req,res)=>{
-
-    let cart_id=req.params.id;
+   app.delete('/deleteCart',async(req,res)=>{
+ 
+    let UserId=req.query.u_id;
+    let product_id=req.query.p_id;
+   
+    console.log(UserId,product_id)
     try{
         await sequelize.sync();
 
         await foodCart.destroy({
             
             where:{
-                id:cart_id
+                p_id:product_id,
+                u_id:UserId
             }
         });  
-         console.log(cart_id);
-        res.json({"message":"item removed frm cart"});
+;
+        res.json({message:"item removed from cart"});
     }
     catch(e){
         console.log(e);
         res.status(400);
-        res.json({"erroe":e});
+        res.json({"erroe":"sdsdsd"});
     }
 
 })

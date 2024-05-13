@@ -76,6 +76,10 @@ try {
         allowNull:false,
         
     },
+    p_name:{
+        type:DataTypes.STRING,
+        allowNull:false,
+    },
     quantity:{
         type:DataTypes.INTEGER,
         allowNull:false,
@@ -85,9 +89,9 @@ try {
         type:DataTypes.FLOAT,
         allowNull:false
     },
-    createdAt:{
-        type:DataTypes.DATE,
-        AudioListener:true
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false
     },
     updatedAt:{
         type:DataTypes.DATE,
