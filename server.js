@@ -188,19 +188,17 @@ app.post('/updateCart/:id/:action', async (req, res) => {
       const action = req.params.action;
       const userId = req.body.userId;
   
-      // Find the cart item by ID
       const cartItem = await foodCart.findByPk(cartId);
   
       if (!cartItem) {
         return res.status(404).json({ error: 'Cart item not found' });
       }
   
-      // Check if the user ID matches the cart item's user ID
+     
       if (cartItem.u_id !== userId) {
         return res.status(403).json({ error: 'Unauthorized access' });
       }
   
-      // Update the quantity based on the action
       if (action === 'increase') {
         cartItem.quantity++;
       } else if (action === 'decrease') {
@@ -213,7 +211,7 @@ app.post('/updateCart/:id/:action', async (req, res) => {
         return res.status(400).json({ error: 'Invalid action' });
       }
   
-      // Save the updated cart item
+  
       await cartItem.save();
   
       res.json(cartItem);
