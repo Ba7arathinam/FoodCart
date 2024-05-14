@@ -189,7 +189,7 @@ app.post('/updateCart/:id/:action', async (req, res) => {
       const userId = req.body.userId;
   
       const cartItem = await foodCart.findByPk(cartId);
-  
+      let f_product = await foodproduct.findByPk(cartItem.p_id)
       if (!cartItem) {
         return res.status(404).json({ error: 'Cart item not found' });
       }
@@ -200,20 +200,37 @@ app.post('/updateCart/:id/:action', async (req, res) => {
       }
   
       if (action === 'increase') {
-        cartItem.quantity++;
+        let qty = cartItem.quantity;
+        qty++;
+        let total_amount = qty * f_product.Price
+                    await foodCart.update(
+                        { quantity: qty, total_price: total_amount },
+                        {
+                            where: {
+                                id: cartItem.id
+                            }
+                        }
+                    );
       } else if (action === 'decrease') {
-        if (cartItem.quantity > 1) {
-          cartItem.quantity--;
+        let qty = cartItem.quantity;
+        if (qty > 1) {
+            qty--;
+            let total_amount = qty * f_product.Price
+            await foodCart.update(
+                { quantity: qty, total_price: total_amount },
+                {
+                    where: {
+                        id: cartItem.id
+                    }
+                }
+            );
         } else {
           return res.status(400).json({ error: 'Quantity cannot be less than 1' });
         }
       } else {
         return res.status(400).json({ error: 'Invalid action' });
       }
-  
-  
-      await cartItem.save();
-  
+ 
       res.json(cartItem);
     } catch (error) {
       console.error(error);
