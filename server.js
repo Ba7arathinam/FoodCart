@@ -80,7 +80,7 @@ app.post('/addCart/:u_id/:p_id', async (req, res) => {
                 if (cart.length > 0) {
                     let qty = cart[0].dataValues.quantity;
                     qty++;
-                    let total_amount = qty * cart[0].dataValues.total_price
+                    let total_amount = qty * f_product.Price
                     await foodCart.update(
                         { quantity: qty, total_price: total_amount },
                         {
